@@ -2,6 +2,7 @@ package com.rodrigomirandamarenco.fragmentstransactionstest;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Handler;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.LoaderManager;
@@ -23,6 +24,7 @@ public class TestDialogFragment extends DialogFragment implements LoaderManager.
 
     private Button mStartLoaderButton;
     private ProgressBar mProgressBar;
+    private Handler mHandler;
 
     @Nullable
     @Override
@@ -31,6 +33,7 @@ public class TestDialogFragment extends DialogFragment implements LoaderManager.
 
         mStartLoaderButton = view.findViewById(R.id.start_loader_button);
         mProgressBar = view.findViewById(R.id.progressBar);
+        mHandler = new Handler();
 
         mStartLoaderButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -51,10 +54,22 @@ public class TestDialogFragment extends DialogFragment implements LoaderManager.
 
     @Override
     public void onLoadFinished(Loader<String> loader, String data) {
+
         mProgressBar.setVisibility(View.INVISIBLE);
         mStartLoaderButton.setEnabled(true);
-        //TODO: Fix this crash
-        dismiss();
+
+        //To avoid IllegalStateException:
+
+        //We can post to the message queue using a handler (so the transaction is technically not executed inside the onLoadFinished callback):
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                dismiss();
+            }
+        });
+
+        //Or We can also perform transactions allowing state loss:
+        //dismissAllowingStateLoss();
     }
 
     @Override
